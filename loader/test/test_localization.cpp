@@ -790,10 +790,10 @@ TEST(localization, loader) {
     EXPECT_EQ(6, num_gt_boxes[0]);
     for(int i=0; i<6; i++) {
         const boundingbox::box& box = transformed_data->boxes()[i];
-        EXPECT_EQ(box.xmin, gt_boxes[i*4+0]);
-        EXPECT_EQ(box.ymin, gt_boxes[i*4+1]);
-        EXPECT_EQ(box.xmax, gt_boxes[i*4+2]);
-        EXPECT_EQ(box.ymax, gt_boxes[i*4+3]);
+        EXPECT_EQ(box.xmin * im_scale[0], gt_boxes[i*4+0]);
+        EXPECT_EQ(box.ymin * im_scale[0], gt_boxes[i*4+1]);
+        EXPECT_EQ(box.xmax * im_scale[0], gt_boxes[i*4+2]);
+        EXPECT_EQ(box.ymax * im_scale[0], gt_boxes[i*4+3]);
         EXPECT_EQ(box.label, gt_classes[i]);
     }
     EXPECT_FLOAT_EQ(1.6, im_scale[0]);

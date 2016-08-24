@@ -39,6 +39,15 @@ public:
     bool difficult = false;
     bool truncated = false;
     int label;
+
+    box operator*(float v) const {
+        box rc = *this;
+        rc.xmin *= v;
+        rc.ymin *= v;
+        rc.xmax *= v;
+        rc.ymax *= v;
+        return rc;
+    }
 };
 
 std::ostream& operator<<(std::ostream&,const nervana::boundingbox::box&);

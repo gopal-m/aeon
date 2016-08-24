@@ -108,33 +108,58 @@ shared_ptr<nervana::boundingbox::decoded> nervana::boundingbox::extractor::extra
 
 nervana::boundingbox::transformer::transformer(const boundingbox::config&) {}
 
+// 1) rotate
+// 2) crop
+// 3) scale
+// 4) flip
 shared_ptr<boundingbox::decoded> nervana::boundingbox::transformer::transform(shared_ptr<image::params> pptr, shared_ptr<boundingbox::decoded> boxes) {
     if( pptr->angle != 0 ) {
         return shared_ptr<boundingbox::decoded>();
     }
     shared_ptr<boundingbox::decoded> rc = make_shared<boundingbox::decoded>();
     cv::Rect crop = pptr->cropbox;
-    float x_scale = (float)(pptr->output_size.width)  / (float)(boxes->width());
-    float y_scale = (float)(pptr->output_size.height) / (float)(boxes->height());
+    float x_scale = (float)(pptr->output_size.width)  / (float)(crop.width);
+    float y_scale = (float)(pptr->output_size.height) / (float)(crop.height);
+    cout << "cropbox " << crop << endl;
+    cout << "output size " << pptr->output_size << endl;
+    cout << "scale " << x_scale << ", " << y_scale << endl;
+    cout << "boxes " << boxes->width() << ", " << boxes->height() << endl;
     for( box tmp : boxes->boxes() ) {
         box b = tmp;
+        cout << "\nstart " << b << endl;
         if( b.xmax <= crop.x ) {                      // outside left
         } else if( b.xmin >= crop.x + crop.width ) {  // outside right
         } else if( b.ymax <= crop.y ) {               // outside above
         } else if( b.ymin >= crop.y + crop.height ) { // outside below
         } else {
             if( b.xmin < crop.x ) {
-                b.xmin = crop.x;
+                b.xmin = 0;
+            } else {
+                b.xmin -= crop.x;
             }
             if( b.ymin < crop.y ) {
-                b.ymin = crop.y;
+                b.ymin = 0;
+            } else {
+                b.ymin -= crop.y;
             }
             if( b.xmax > crop.x + crop.width ) {
-                b.xmax = crop.x + crop.width;
+                b.xmax = crop.width;
+            } else {
+                b.xmax -= crop.x;
             }
             if( b.ymax > crop.y + crop.height ) {
-                b.ymax = crop.y + crop.height;
+                b.ymax = crop.height;
+            } else {
+                b.ymax -= crop.y;
             }
+
+            cout << "pre flip " << b << endl;
+            if(pptr->flip) {
+                auto xmax = b.xmax;
+                b.xmax = crop.width - b.xmin;
+                b.xmin = crop.width - xmax;
+            }
+            cout << "post flip " << b << endl;
 
             // now rescale box
             b.xmin = (decltype(b.xmin))round((float)b.xmin * x_scale);

@@ -135,12 +135,13 @@ namespace nervana {
         virtual ~decoded() override {}
 
         // from transformer
-        std::vector<int>    labels;
-        std::vector<target> bbox_targets;
-        std::vector<int>    anchor_index;
-        std::vector<box>    anchors;
-        float               image_scale;
-        cv::Size            output_image_size;
+        std::vector<int>                labels;
+        std::vector<target>             bbox_targets;
+        std::vector<int>                anchor_index;
+        std::vector<box>                anchors;
+        float                           image_scale;
+        cv::Size                        output_image_size;
+        std::vector<boundingbox::box>   gt_boxes;
     };
 
     class localization::extractor : public nervana::interface::extractor<localization::decoded> {
@@ -173,7 +174,7 @@ namespace nervana {
                             std::shared_ptr<localization::decoded> mp) override;
     private:
         transformer() = delete;
-        cv::Mat bbox_overlaps(const std::vector<box>& boxes, const std::vector<box>& query_boxes);
+        cv::Mat bbox_overlaps(const std::vector<box>& boxes, const std::vector<boundingbox::box>& query_boxes);
         static std::vector<target> compute_targets(const std::vector<box>& gt_bb, const std::vector<box>& anchors);
         std::vector<int> sample_anchors(const std::vector<int>& labels, bool debug=false);
 
