@@ -125,7 +125,7 @@ vector<boundingbox::box> boundingbox::transformer::transform_box(
 
     vector<boundingbox::box> rc;
     for(boundingbox::box b : boxes) {
-        cout << "\nstart " << b << endl;
+        cout << "\nstart     " << b << endl;
         if( b.xmax <= crop.x ) {                      // outside left
         } else if( b.xmin >= crop.x + crop.width ) {  // outside right
         } else if( b.ymax <= crop.y ) {               // outside above
@@ -152,7 +152,7 @@ vector<boundingbox::box> boundingbox::transformer::transform_box(
                 b.ymax -= crop.y;
             }
 
-            cout << "pre flip " << b << endl;
+            cout << "pre flip  " << b << endl;
             if(flip) {
                 auto xmax = b.xmax;
                 b.xmax = crop.width - b.xmin;

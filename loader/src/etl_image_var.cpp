@@ -99,6 +99,7 @@ image_var::param_factory::make_params(shared_ptr<const decoded> input)
     auto imgstgs = shared_ptr<image_var::params>(new image_var::params());
 
     imgstgs->flip  = settings.flip_distribution(generator);
+    imgstgs->image_size = input->get_image_size();
 
     return imgstgs;
 }

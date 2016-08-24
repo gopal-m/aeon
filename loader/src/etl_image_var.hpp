@@ -43,6 +43,7 @@ namespace nervana {
 
         bool flip                = false;
         bool debug_deterministic = false;
+        cv::Size image_size;
     private:
         params() {}
     };

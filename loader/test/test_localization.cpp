@@ -24,6 +24,7 @@
 
 #include "gtest/gtest.h"
 #include "gen_image.hpp"
+#include "json.hpp"
 
 #define private public
 
@@ -296,8 +297,8 @@ TEST(localization, transform_scale)
 
 TEST(localization, transform_flip)
 {
-    cout << "yeeehaaa" << endl;
     string data = read_file(CURDIR"/test_data/006637.json");
+    nlohmann::json js = nlohmann::json::parse(data);
     auto cfg = make_localization_config();
     localization::extractor extractor{cfg};
     localization::transformer transformer{cfg};
@@ -306,11 +307,17 @@ TEST(localization, transform_flip)
     shared_ptr<image_var::params> params = make_shared<image_var::params>();
     params->debug_deterministic = true;
     params->flip = 1;
+    auto size =js["size"];
+    params->image_size.width = size["width"];
+    params->image_size.height = size["height"];
     shared_ptr<localization::decoded> transformed_data = transformer.transform(params, decoded_data);
 
     for(int i=0; i<decoded_data->boxes().size(); i++) {
         boundingbox::box expected = decoded_data->boxes()[i];
         boundingbox::box actual = transformed_data->gt_boxes[i];
+        auto xmin = expected.xmin;
+        expected.xmin = params->image_size.width - expected.xmax;
+        expected.xmax = params->image_size.width - xmin;
         expected.xmin = round(expected.xmin * transformed_data->image_scale);
         expected.ymin = round(expected.ymin * transformed_data->image_scale);
         expected.xmax = round(expected.xmax * transformed_data->image_scale);

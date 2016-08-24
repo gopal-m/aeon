@@ -97,7 +97,7 @@ shared_ptr<localization::decoded> localization::transformer::transform(
     tie(im_scale, im_size) = image::calculate_scale_shape(im_size, cfg.min_size, cfg.max_size);
     mp->image_scale = im_scale;
     mp->output_image_size = im_size;
-    auto crop = cv::Rect(0, 0, im_size.width, im_size.height);
+    auto crop = cv::Rect(0, 0, txs->image_size.width, txs->image_size.height);
 
     vector<int> idx_inside = anchor::inside_image_bounds(im_size.width, im_size.height, all_anchors);
     vector<box> anchors_inside;
