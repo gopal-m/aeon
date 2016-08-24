@@ -125,7 +125,6 @@ vector<boundingbox::box> boundingbox::transformer::transform_box(
 
     vector<boundingbox::box> rc;
     for(boundingbox::box b : boxes) {
-        cout << "\nstart     " << b << endl;
         if( b.xmax <= crop.x ) {                      // outside left
         } else if( b.xmin >= crop.x + crop.width ) {  // outside right
         } else if( b.ymax <= crop.y ) {               // outside above
@@ -152,19 +151,17 @@ vector<boundingbox::box> boundingbox::transformer::transform_box(
                 b.ymax -= crop.y;
             }
 
-            cout << "pre flip  " << b << endl;
             if(flip) {
                 auto xmax = b.xmax;
                 b.xmax = crop.width - b.xmin;
                 b.xmin = crop.width - xmax;
             }
-            cout << "post flip " << b << endl;
 
             // now rescale box
-            b.xmin = (decltype(b.xmin))round((float)b.xmin * x_scale);
-            b.xmax = (decltype(b.xmax))round((float)b.xmax * x_scale);
-            b.ymin = (decltype(b.ymin))round((float)b.ymin * y_scale);
-            b.ymax = (decltype(b.ymax))round((float)b.ymax * y_scale);
+            b.xmin *= x_scale;
+            b.xmax *= x_scale;
+            b.ymin *= y_scale;
+            b.ymax *= y_scale;
 
             rc.push_back(b);
         }

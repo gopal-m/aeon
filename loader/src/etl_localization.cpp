@@ -104,12 +104,7 @@ shared_ptr<localization::decoded> localization::transformer::transform(
     for(int i : idx_inside) anchors_inside.push_back(all_anchors[i]);
 
     // compute bbox overlaps
-    cout << "crop " << crop << endl;
-    cout << "flip " << txs->flip << endl;
-    cout << "im_scale " << im_scale << endl;
-    for(auto b : mp->boxes()) cout << "pre transform " << b << endl;
     mp->gt_boxes = boundingbox::transformer::transform_box(mp->boxes(), crop, txs->flip, im_scale, im_scale);
-    for(auto b : mp->gt_boxes) cout << "post transform " << b << endl;
     cv::Mat overlaps = bbox_overlaps(anchors_inside, mp->gt_boxes);
 
     vector<int> labels(overlaps.rows, -1.0);

@@ -243,6 +243,9 @@ TEST(localization, sample_anchors)
     auto extracted_metadata = extractor.extract(&data[0],data.size());
     ASSERT_NE(nullptr,extracted_metadata);
     shared_ptr<image_var::params> params = make_shared<image_var::params>();
+    nlohmann::json js = nlohmann::json::parse(data);
+    params->image_size.width = js["size"]["width"];
+    params->image_size.height = js["size"]["height"];
     auto transformed_metadata = transformer.transform(params, extracted_metadata);
     ASSERT_NE(nullptr,transformed_metadata);
 
@@ -279,15 +282,18 @@ TEST(localization, transform_scale)
     ASSERT_NE(nullptr,decoded_data);
     shared_ptr<image_var::params> params = make_shared<image_var::params>();
     params->debug_deterministic = true;
+    nlohmann::json js = nlohmann::json::parse(data);
+    params->image_size.width = js["size"]["width"];
+    params->image_size.height = js["size"]["height"];
     shared_ptr<localization::decoded> transformed_data = transformer.transform(params, decoded_data);
 
     for(int i=0; i<decoded_data->boxes().size(); i++) {
         boundingbox::box expected = decoded_data->boxes()[i];
         boundingbox::box actual = transformed_data->gt_boxes[i];
-        expected.xmin = round(expected.xmin * transformed_data->image_scale);
-        expected.ymin = round(expected.ymin * transformed_data->image_scale);
-        expected.xmax = round(expected.xmax * transformed_data->image_scale);
-        expected.ymax = round(expected.ymax * transformed_data->image_scale);
+        expected.xmin *= transformed_data->image_scale;
+        expected.ymin *= transformed_data->image_scale;
+        expected.xmax *= transformed_data->image_scale;
+        expected.ymax *= transformed_data->image_scale;
         EXPECT_EQ(expected.xmin, actual.xmin);
         EXPECT_EQ(expected.xmax, actual.xmax);
         EXPECT_EQ(expected.ymin, actual.ymin);
@@ -298,7 +304,6 @@ TEST(localization, transform_scale)
 TEST(localization, transform_flip)
 {
     string data = read_file(CURDIR"/test_data/006637.json");
-    nlohmann::json js = nlohmann::json::parse(data);
     auto cfg = make_localization_config();
     localization::extractor extractor{cfg};
     localization::transformer transformer{cfg};
@@ -307,9 +312,9 @@ TEST(localization, transform_flip)
     shared_ptr<image_var::params> params = make_shared<image_var::params>();
     params->debug_deterministic = true;
     params->flip = 1;
-    auto size =js["size"];
-    params->image_size.width = size["width"];
-    params->image_size.height = size["height"];
+    nlohmann::json js = nlohmann::json::parse(data);
+    params->image_size.width = js["size"]["width"];
+    params->image_size.height = js["size"]["height"];
     shared_ptr<localization::decoded> transformed_data = transformer.transform(params, decoded_data);
 
     for(int i=0; i<decoded_data->boxes().size(); i++) {
@@ -318,10 +323,10 @@ TEST(localization, transform_flip)
         auto xmin = expected.xmin;
         expected.xmin = params->image_size.width - expected.xmax;
         expected.xmax = params->image_size.width - xmin;
-        expected.xmin = round(expected.xmin * transformed_data->image_scale);
-        expected.ymin = round(expected.ymin * transformed_data->image_scale);
-        expected.xmax = round(expected.xmax * transformed_data->image_scale);
-        expected.ymax = round(expected.ymax * transformed_data->image_scale);
+        expected.xmin *= transformed_data->image_scale;
+        expected.ymin *= transformed_data->image_scale;
+        expected.xmax *= transformed_data->image_scale;
+        expected.ymax *= transformed_data->image_scale;
         EXPECT_EQ(expected.xmin, actual.xmin);
         EXPECT_EQ(expected.xmax, actual.xmax);
         EXPECT_EQ(expected.ymin, actual.ymin);
@@ -715,6 +720,9 @@ TEST(localization, loader)
     ASSERT_NE(nullptr,extract_data);
     auto params = make_shared<image_var::params>();
     params->debug_deterministic = true;
+    nlohmann::json js = nlohmann::json::parse(data);
+    params->image_size.width = js["size"]["width"];
+    params->image_size.height = js["size"]["height"];
     shared_ptr<localization::decoded> transformed_data = transformer.transform(params, extract_data);
 
     ASSERT_EQ(transformed_data->anchor_index.size(), fg_idx.size() + bg_idx.size());
