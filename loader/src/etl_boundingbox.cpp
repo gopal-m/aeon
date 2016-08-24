@@ -21,13 +21,13 @@ using namespace std;
 using namespace nervana;
 using namespace nlohmann;   // json stuff
 
-ostream& operator<<(ostream& out, const nervana::boundingbox::box& b)
+ostream& operator<<(ostream& out, const boundingbox::box& b)
 {
-    out << (nervana::box)b << " label=" << b.label;
+    out << (box)b << " label=" << b.label;
     return out;
 }
 
-nervana::boundingbox::config::config(nlohmann::json js)
+boundingbox::config::config(nlohmann::json js)
 {
     if(js.is_null()) {
         throw std::runtime_error("missing bbox config in json config");
@@ -48,18 +48,18 @@ nervana::boundingbox::config::config(nlohmann::json js)
     validate();
 }
 
-void nervana::boundingbox::config::validate() {
+void boundingbox::config::validate() {
 }
 
-nervana::boundingbox::decoded::decoded() {
+boundingbox::decoded::decoded() {
 }
 
-nervana::boundingbox::extractor::extractor(const std::unordered_map<std::string,int>& map) :
+boundingbox::extractor::extractor(const std::unordered_map<std::string,int>& map) :
     label_map{map}
 {
 }
 
-void nervana::boundingbox::extractor::extract(const char* data, int size, std::shared_ptr<boundingbox::decoded>& rc) {
+void boundingbox::extractor::extract(const char* data, int size, std::shared_ptr<boundingbox::decoded>& rc) {
     string buffer( data, size );
     json j = json::parse(buffer);
     if( j["object"].is_null() ) { throw invalid_argument("'object' missing from metadata"); }
@@ -100,32 +100,31 @@ void nervana::boundingbox::extractor::extract(const char* data, int size, std::s
     }
 }
 
-shared_ptr<nervana::boundingbox::decoded> nervana::boundingbox::extractor::extract(const char* data, int size) {
+shared_ptr<boundingbox::decoded> boundingbox::extractor::extract(const char* data, int size) {
     shared_ptr<decoded> rc = make_shared<decoded>();
     extract(data, size, rc);
     return rc;
 }
 
-nervana::boundingbox::transformer::transformer(const boundingbox::config&) {}
+boundingbox::transformer::transformer(const boundingbox::config&)
+{
 
-// 1) rotate
-// 2) crop
-// 3) scale
-// 4) flip
-shared_ptr<boundingbox::decoded> nervana::boundingbox::transformer::transform(shared_ptr<image::params> pptr, shared_ptr<boundingbox::decoded> boxes) {
-    if( pptr->angle != 0 ) {
-        return shared_ptr<boundingbox::decoded>();
-    }
-    shared_ptr<boundingbox::decoded> rc = make_shared<boundingbox::decoded>();
-    cv::Rect crop = pptr->cropbox;
-    float x_scale = (float)(pptr->output_size.width)  / (float)(crop.width);
-    float y_scale = (float)(pptr->output_size.height) / (float)(crop.height);
-    cout << "cropbox " << crop << endl;
-    cout << "output size " << pptr->output_size << endl;
-    cout << "scale " << x_scale << ", " << y_scale << endl;
-    cout << "boxes " << boxes->width() << ", " << boxes->height() << endl;
-    for( box tmp : boxes->boxes() ) {
-        box b = tmp;
+}
+
+vector<boundingbox::box> boundingbox::transformer::transform_box(
+        const std::vector<boundingbox::box>& boxes,
+        const cv::Rect& crop,
+        bool flip,
+        float x_scale,
+        float y_scale)
+{
+    // 1) rotate
+    // 2) crop
+    // 3) scale
+    // 4) flip
+
+    vector<boundingbox::box> rc;
+    for(boundingbox::box b : boxes) {
         cout << "\nstart " << b << endl;
         if( b.xmax <= crop.x ) {                      // outside left
         } else if( b.xmin >= crop.x + crop.width ) {  // outside right
@@ -154,7 +153,7 @@ shared_ptr<boundingbox::decoded> nervana::boundingbox::transformer::transform(sh
             }
 
             cout << "pre flip " << b << endl;
-            if(pptr->flip) {
+            if(flip) {
                 auto xmax = b.xmax;
                 b.xmax = crop.width - b.xmin;
                 b.xmin = crop.width - xmax;
@@ -167,19 +166,37 @@ shared_ptr<boundingbox::decoded> nervana::boundingbox::transformer::transform(sh
             b.ymin = (decltype(b.ymin))round((float)b.ymin * y_scale);
             b.ymax = (decltype(b.ymax))round((float)b.ymax * y_scale);
 
-            rc->_boxes.push_back( b );
+            rc.push_back(b);
         }
     }
     return rc;
 }
 
-nervana::boundingbox::loader::loader(const boundingbox::config& cfg) :
+shared_ptr<boundingbox::decoded> boundingbox::transformer::transform(shared_ptr<image::params> pptr, shared_ptr<boundingbox::decoded> boxes) {
+    if( pptr->angle != 0 ) {
+        return shared_ptr<boundingbox::decoded>();
+    }
+    shared_ptr<boundingbox::decoded> rc = make_shared<boundingbox::decoded>();
+    cv::Rect crop = pptr->cropbox;
+    float x_scale = (float)(pptr->output_size.width)  / (float)(crop.width);
+    float y_scale = (float)(pptr->output_size.height) / (float)(crop.height);
+    cout << "cropbox " << crop << endl;
+    cout << "output size " << pptr->output_size << endl;
+    cout << "scale " << x_scale << ", " << y_scale << endl;
+    cout << "boxes " << boxes->width() << ", " << boxes->height() << endl;
+
+    rc->_boxes = transform_box(boxes->boxes(), crop, pptr->flip, x_scale, y_scale);
+
+    return rc;
+}
+
+boundingbox::loader::loader(const boundingbox::config& cfg) :
     max_bbox{cfg.max_bbox_count}
 {
 
 }
 
-void nervana::boundingbox::loader::load(const vector<void*>& outlist, shared_ptr<boundingbox::decoded> boxes) {
+void boundingbox::loader::load(const vector<void*>& outlist, shared_ptr<boundingbox::decoded> boxes) {
     float* data = (float*)outlist[0];
     size_t output_count = min(max_bbox, boxes->boxes().size());
     int i=0;

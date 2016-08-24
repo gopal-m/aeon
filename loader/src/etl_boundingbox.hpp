@@ -118,6 +118,7 @@ public:
                                             std::shared_ptr<image::params>,
                                             std::shared_ptr<boundingbox::decoded>) override;
 
+    static std::vector<boundingbox::box> transform_box( const std::vector<boundingbox::box>& b, const cv::Rect& crop, bool flip, float x_scale, float y_scale);
 private:
 };
 

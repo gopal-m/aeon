@@ -38,21 +38,24 @@ using namespace nervana::localization;
 
 static vector<string> label_list = {"person","dog","lion","tiger","eel","puma","rat","tick","flea","bicycle","hovercraft"};
 
-static string read_file( const string& path ) {
+static string read_file( const string& path )
+{
     ifstream f(path);
     stringstream ss;
     ss << f.rdbuf();
     return ss.str();
 }
 
-static localization::config make_localization_config() {
+static localization::config make_localization_config()
+{
     nlohmann::json ijs = {{"min_size",600},{"max_size",1000},{"channels",3},{"flip_enable", false}};
     nlohmann::json js = {{"labels",label_list},{"max_gt_boxes",64}};
     image_var::config icfg{ijs};
     return localization::config(js, icfg);
 }
 
-TEST(localization,generate_anchors) {
+TEST(localization,generate_anchors)
+{
     // Verify that we compute the same anchors as Shaoqing's matlab implementation:
     //    >> load output/rpn_cachedir/faster_rcnn_VOC2007_ZF_stage1_rpn/anchors.mat
     //    >> anchors
@@ -96,7 +99,8 @@ TEST(localization,generate_anchors) {
     }
 }
 
-void plot(const vector<box>& list, const string& prefix) {
+void plot(const vector<box>& list, const string& prefix)
+{
     float xmin = 0.0;
     float xmax = 0.0;
     float ymin = 0.0;
@@ -131,7 +135,8 @@ void plot(const vector<box>& list, const string& prefix) {
     cv::imwrite(fname,img);
 }
 
-void plot(const string& path) {
+void plot(const string& path)
+{
     string prefix = path.substr(path.size()-11, 6) + "-";
     string data = read_file(path);
     auto cfg = make_localization_config();
@@ -219,7 +224,8 @@ void plot(const string& path) {
 //     plot(CURDIR"/test_data/009952.json");
 // }
 
-TEST(localization,config) {
+TEST(localization,config)
+{
     nlohmann::json ijs = {{"min_size",300},{"max_size",400},{"channels",3},{"flip_enable", false}};
     nlohmann::json js = {{"labels",label_list},{"max_gt_boxes",100}};
     image_var::config icfg{ijs};
@@ -227,7 +233,8 @@ TEST(localization,config) {
     EXPECT_NO_THROW(localization::config cfg(js, icfg));
 }
 
-TEST(localization, sample_anchors) {
+TEST(localization, sample_anchors)
+{
     string data = read_file(CURDIR"/test_data/006637.json");
     localization::config cfg = make_localization_config();
     localization::extractor extractor{cfg};
@@ -261,21 +268,62 @@ TEST(localization, sample_anchors) {
     }
 }
 
-TEST(localization, transform) {
-    {
-        string data = read_file(CURDIR"/test_data/006637.json");
-        auto cfg = make_localization_config();
-        localization::extractor extractor{cfg};
-        localization::transformer transformer{cfg};
-        auto decoded_data = extractor.extract(&data[0],data.size());
-        ASSERT_NE(nullptr,decoded_data);
-        shared_ptr<image_var::params> params = make_shared<image_var::params>();
-        params->debug_deterministic = true;
-        shared_ptr<localization::decoded> transformed_data = transformer.transform(params, decoded_data);
+TEST(localization, transform_scale)
+{
+    string data = read_file(CURDIR"/test_data/006637.json");
+    auto cfg = make_localization_config();
+    localization::extractor extractor{cfg};
+    localization::transformer transformer{cfg};
+    auto decoded_data = extractor.extract(&data[0],data.size());
+    ASSERT_NE(nullptr,decoded_data);
+    shared_ptr<image_var::params> params = make_shared<image_var::params>();
+    params->debug_deterministic = true;
+    shared_ptr<localization::decoded> transformed_data = transformer.transform(params, decoded_data);
+
+    for(int i=0; i<decoded_data->boxes().size(); i++) {
+        boundingbox::box expected = decoded_data->boxes()[i];
+        boundingbox::box actual = transformed_data->gt_boxes[i];
+        expected.xmin = round(expected.xmin * transformed_data->image_scale);
+        expected.ymin = round(expected.ymin * transformed_data->image_scale);
+        expected.xmax = round(expected.xmax * transformed_data->image_scale);
+        expected.ymax = round(expected.ymax * transformed_data->image_scale);
+        EXPECT_EQ(expected.xmin, actual.xmin);
+        EXPECT_EQ(expected.xmax, actual.xmax);
+        EXPECT_EQ(expected.ymin, actual.ymin);
+        EXPECT_EQ(expected.ymax, actual.ymax);
     }
 }
 
-TEST(localization, loader) {
+TEST(localization, transform_flip)
+{
+    cout << "yeeehaaa" << endl;
+    string data = read_file(CURDIR"/test_data/006637.json");
+    auto cfg = make_localization_config();
+    localization::extractor extractor{cfg};
+    localization::transformer transformer{cfg};
+    auto decoded_data = extractor.extract(&data[0],data.size());
+    ASSERT_NE(nullptr,decoded_data);
+    shared_ptr<image_var::params> params = make_shared<image_var::params>();
+    params->debug_deterministic = true;
+    params->flip = 1;
+    shared_ptr<localization::decoded> transformed_data = transformer.transform(params, decoded_data);
+
+    for(int i=0; i<decoded_data->boxes().size(); i++) {
+        boundingbox::box expected = decoded_data->boxes()[i];
+        boundingbox::box actual = transformed_data->gt_boxes[i];
+        expected.xmin = round(expected.xmin * transformed_data->image_scale);
+        expected.ymin = round(expected.ymin * transformed_data->image_scale);
+        expected.xmax = round(expected.xmax * transformed_data->image_scale);
+        expected.ymax = round(expected.ymax * transformed_data->image_scale);
+        EXPECT_EQ(expected.xmin, actual.xmin);
+        EXPECT_EQ(expected.xmax, actual.xmax);
+        EXPECT_EQ(expected.ymin, actual.ymin);
+        EXPECT_EQ(expected.ymax, actual.ymax);
+    }
+}
+
+TEST(localization, loader)
+{
     vector<int> bbox_mask_index = {
           1200,   1262,   1324,   1386,  23954,  24016,  24078,  24090,
          24140,  24152,  24202,  24214,  24264,  24276,  24338,  24400,
@@ -799,7 +847,8 @@ TEST(localization, loader) {
     EXPECT_FLOAT_EQ(1.6, im_scale[0]);
 }
 
-TEST(localization, compute_targets) {
+TEST(localization, compute_targets)
+{
     // expected values generated via python localization example
 
     vector<box> gt_bb;
@@ -852,7 +901,8 @@ TEST(localization, compute_targets) {
     EXPECT_NEAR(dh_1_expected, result[1].dh, acceptable_error);
 }
 
-TEST(localization,provider) {
+TEST(localization,provider)
+{
     nlohmann::json js = {{"type","image,localization"},
                          {"image", {
                             {"min_size", 600},
@@ -917,7 +967,8 @@ TEST(localization,provider) {
     }
 }
 
-TEST(localization,provider_channel_major) {
+TEST(localization,provider_channel_major)
+{
     nlohmann::json js = {{"type","image,localization"},
                          {"image", {
                             {"min_size", 600},
