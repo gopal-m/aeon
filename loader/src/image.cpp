@@ -108,9 +108,20 @@ cv::Size2f image::cropbox_linear_scale(const cv::Size2f& in_size, float scale)
     return in_size * scale;
 }
 
-cv::Size2f image::cropbox_area_scale(const cv::Size2f& in_size, float scale)
+cv::Size2f image::cropbox_area_scale(const cv::Size2f& in_size, const cv::Size2f& cropbox_size, float scale)
 {
-    cv::Size2f result = in_size;
+    cv::Size2f result = cropbox_size;
+    float in_area = in_size.area();
+    float crop_area = cropbox_size.area();
+    float size_ratio = crop_area / in_area;
+    if(size_ratio > scale) {
+        float crop_aspect_ratio = cropbox_size.width / cropbox_size.height;
+        crop_area = in_area * scale;
+        float w2 = crop_area * crop_aspect_ratio;
+        float width = sqrt(w2);
+        float height = crop_area / width;
+        result = cv::Size2f(width, height);
+    }
     return result;
 }
 
