@@ -153,8 +153,8 @@ vector<boundingbox::box> boundingbox::transformer::transform_box(
 
             if(flip) {
                 auto xmax = b.xmax;
-                b.xmax = crop.width - b.xmin;
-                b.xmin = crop.width - xmax;
+                b.xmax = crop.width - b.xmin - 1;
+                b.xmin = crop.width - xmax - 1;
             }
 
             // now rescale box

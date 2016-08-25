@@ -333,14 +333,14 @@ TEST(boundingbox, flip)
     vector<boundingbox::box> tx_boxes = tx_decoded->boxes();
     ASSERT_EQ(8,tx_boxes.size());
 
-    EXPECT_EQ(cv::Rect( 256-10-10, 10, 10, 10 ),tx_boxes[0].rect());
-    EXPECT_EQ(cv::Rect( 256-10-30, 30, 10, 10 ),tx_boxes[1].rect());
-    EXPECT_EQ(cv::Rect( 256-10-50, 50, 10, 10 ),tx_boxes[2].rect());
-    EXPECT_EQ(cv::Rect( 256-10-70, 30, 10, 10 ),tx_boxes[3].rect());
-    EXPECT_EQ(cv::Rect( 256-10-90, 35, 10, 10 ),tx_boxes[4].rect());
-    EXPECT_EQ(cv::Rect( 256-10-30, 70, 10, 10 ),tx_boxes[5].rect());
-    EXPECT_EQ(cv::Rect( 256-10-70, 70, 10, 10 ),tx_boxes[6].rect());
-    EXPECT_EQ(cv::Rect( 256-80-30, 30, 80, 80 ),tx_boxes[7].rect());
+    EXPECT_EQ(cv::Rect( 256-10-10-1, 10, 10, 10 ),tx_boxes[0].rect());
+    EXPECT_EQ(cv::Rect( 256-10-30-1, 30, 10, 10 ),tx_boxes[1].rect());
+    EXPECT_EQ(cv::Rect( 256-10-50-1, 50, 10, 10 ),tx_boxes[2].rect());
+    EXPECT_EQ(cv::Rect( 256-10-70-1, 30, 10, 10 ),tx_boxes[3].rect());
+    EXPECT_EQ(cv::Rect( 256-10-90-1, 35, 10, 10 ),tx_boxes[4].rect());
+    EXPECT_EQ(cv::Rect( 256-10-30-1, 70, 10, 10 ),tx_boxes[5].rect());
+    EXPECT_EQ(cv::Rect( 256-10-70-1, 70, 10, 10 ),tx_boxes[6].rect());
+    EXPECT_EQ(cv::Rect( 256-80-30-1, 30, 80, 80 ),tx_boxes[7].rect());
 }
 
 TEST(boundingbox, crop_flip)
@@ -385,12 +385,12 @@ TEST(boundingbox, crop_flip)
 
     float xscale = 256./40.;
     float yscale = 256./40.;
-    EXPECT_EQ(cv::Rect( 35*xscale,  0*yscale,  5*xscale,  5*yscale ),tx_boxes[0].rect());
-    EXPECT_EQ(cv::Rect( 15*xscale, 15*yscale, 10*xscale, 10*yscale ),tx_boxes[1].rect());
-    EXPECT_EQ(cv::Rect(  0*xscale,  0*yscale,  5*xscale,  5*yscale ),tx_boxes[2].rect());
-    EXPECT_EQ(cv::Rect( 35*xscale, 35*yscale,  5*xscale,  5*yscale ),tx_boxes[3].rect());
-    EXPECT_EQ(cv::Rect(  0*xscale, 35*yscale,  5*xscale,  5*yscale ),tx_boxes[4].rect());
-    EXPECT_EQ(cv::Rect(  0*xscale,  0*yscale, 40*xscale, 40*yscale ),tx_boxes[5].rect());
+    EXPECT_EQ(cv::Rect( (35-1)*xscale,  0*yscale,  5*xscale,  5*yscale ),tx_boxes[0].rect());
+    EXPECT_EQ(cv::Rect( (15-1)*xscale, 15*yscale, 10*xscale, 10*yscale ),tx_boxes[1].rect());
+    EXPECT_EQ(cv::Rect( ( 0-1)*xscale,  0*yscale,  5*xscale,  5*yscale ),tx_boxes[2].rect());
+    EXPECT_EQ(cv::Rect( (35-1)*xscale, 35*yscale,  5*xscale,  5*yscale ),tx_boxes[3].rect());
+    EXPECT_EQ(cv::Rect( ( 0-1)*xscale, 35*yscale,  5*xscale,  5*yscale ),tx_boxes[4].rect());
+    EXPECT_EQ(cv::Rect( ( 0-1)*xscale,  0*yscale, 40*xscale, 40*yscale ),tx_boxes[5].rect());
 }
 
 TEST(boundingbox, angle)

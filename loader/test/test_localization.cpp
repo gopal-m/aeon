@@ -321,8 +321,8 @@ TEST(localization, transform_flip)
         boundingbox::box expected = decoded_data->boxes()[i];
         boundingbox::box actual = transformed_data->gt_boxes[i];
         auto xmin = expected.xmin;
-        expected.xmin = params->image_size.width - expected.xmax;
-        expected.xmax = params->image_size.width - xmin;
+        expected.xmin = params->image_size.width - expected.xmax - 1;
+        expected.xmax = params->image_size.width - xmin - 1;
         expected.xmin *= transformed_data->image_scale;
         expected.ymin *= transformed_data->image_scale;
         expected.xmax *= transformed_data->image_scale;
